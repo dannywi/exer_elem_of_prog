@@ -3,8 +3,9 @@
 #include <string>
 #include <sstream>
 #include <unordered_set>
-
+#include <numeric>
 using namespace std;
+
 // move to another file
 namespace Tools {
     template<typename IT>
@@ -20,7 +21,8 @@ namespace Tools {
 }
 
 namespace DeleteDuplicatesFromSorted {
-
+    // just overwrite the values in place, having to iterators
+    // lastly do erase on excessive positions
     int deleteDuplicates(vector<int>& vec) {
         if(vec.size() < 2)
             return 0;
@@ -89,6 +91,22 @@ namespace LargestSubArray {
         return ret;
     }
 
+    int getMaxSumOnly(const vector<int>& input) {
+        if(input.empty())
+            return 0;
+        int currMax = input[0];
+        int globalMax = input[0];
+        for(int i = 1; i < input.size(); ++i) {
+            int v = input[i];
+            // if me alone is better than the accumulated so far and me, start fresh with me only
+            currMax = max(v, currMax + v);
+            // update global max if current running is bigger
+            globalMax = max(currMax, globalMax);
+        }
+        cout << "   ... max " << globalMax << endl;
+        return globalMax;
+    }
+
     void run() {
         struct Test {
             vector<int> input;
@@ -104,8 +122,10 @@ namespace LargestSubArray {
         };
 
         bool res = true;
-        for(auto test: tests)
+        for(auto test: tests) {
             res &= solve(test.input) == test.expected_output;
+            res &= getMaxSumOnly(test.input) == accumulate(test.expected_output.begin(), test.expected_output.end(), 0);
+        }
 
         cout << "Tests Passed: " << (res ? "YES" : "NO") << endl;
     }

@@ -20,11 +20,6 @@ namespace Knapsack {
     };
 
     auto solve(const vector<Item>& items, int max_weight) {
-        //vector<vector<vector<Item>>> matrix; // items x weights (containing list of items)
-        //matrix.reserve(items.size() + 1);
-        //for(int a = 0; a <= items.size(); ++a) matrix.push_back(vector<vector<Item>>());
-        //matrix[0].reserve(max_weight + 1);
-        //for(int a = 0; a <= max_weight; ++a) matrix[0].push_back(vector<Item>());
         vector<vector<vector<Item>>> matrix(items.size() + 1, vector<vector<Item>>(max_weight + 1, vector<Item>()));
 
         auto total_value = [&matrix](int row, int col) {
@@ -34,7 +29,6 @@ namespace Knapsack {
 
         for(int i = 0, m = 1; i < items.size(); ++i, ++m) {
             const auto& item = items[i];
-            //matrix[m].reserve(max_weight + 1);
             for(int a = 0; a <= max_weight; ++a) matrix[m].push_back(vector<Item>());
 
             for(int w = 0; w <= max_weight; ++w) {
@@ -53,11 +47,41 @@ namespace Knapsack {
                     matrix[m][w] = matrix[m - 1][w];
                 else
                     matrix[m][w] = listWithItem;
-                //cout << " ... item " << m << " " << w << " => " << max(valueWithItem, valueWithoutItem) << endl;
             }
         }
 
         return matrix[items.size()][max_weight];
+    }
+
+    // 1. set matrix of items (rows) and weights (cols), patch zero row / col for buffer
+    // 2. for each item:
+    //    - for each weight:
+    //      - compare if it's better to add me or not (if I can get in)
+    //        - not using me is the matrix value one above me)
+    //        - using me means add my value, and get the must-have-been-calculated best value in remaining weight column
+    int solveValueOnly(const vector<Item>& items, int max_weight) {
+        vector<vector<int>> matrix(items.size() + 1, vector<int>(max_weight + 1, 0));
+
+        // mi / mw -> index of items / weight in matrix, since we have one extra row / col for buffer
+        for(int mi = 1; mi <= items.size(); ++mi) {
+            for(int mw = 1; mw <= max_weight; ++mw) {
+                // value without me is the value above in the matrix (value up until prev item)
+                int valueWithoutItem = matrix[mi - 1][mw];
+
+                // value with me is my value plus the best use of remaining weight
+                int valueWithItem = 0;
+                if(mw >= items[mi - 1].weight) {
+                    valueWithItem = items[mi - 1].value;
+                    int remainingWeight = mw - items[mi - 1].weight;
+                    valueWithItem += matrix[mi][remainingWeight];
+                }
+
+                matrix[mi][mw] = max(valueWithoutItem, valueWithItem);
+            }
+        }
+        int ret = matrix[items.size()][max_weight];
+        cout << "   ... solveValueOnly " << ret << endl;
+        return ret;
     }
 
     bool test() {
@@ -88,6 +112,8 @@ namespace Knapsack {
             sort(test.expected_items.begin(), test.expected_items.end(), comp);
             int value = accumulate(items.begin(), items.end(), 0, [](int acc, const Item& x) { return acc + x.value; });
             res &= items == test.expected_items && value == test.expected_value;
+
+            res &= test.expected_value == solveValueOnly(test.in_items, test.max_weight);
 
             cout << " total value " << value << endl;
             for_each(items.begin(), items.end(), [](const Item& i) { cout << " ..... " << i << endl; });

@@ -86,26 +86,29 @@ namespace LinkedList {
         return root;
     }
 
+    // recursive
     template<typename T>
     shared_ptr<Node<T>> reverse(shared_ptr<Node<T>> root) {
-        shared_ptr<Node<T>> new_root;
         std::function<void(shared_ptr<Node<T>>, shared_ptr<Node<T>>, shared_ptr<Node<T>>&)> reverse_sub =
             [&](shared_ptr<Node<T>> curr, shared_ptr<Node<T>> next, shared_ptr<Node<T>>& nr) {
             if(next != nullptr) {
-                cout << "  bef [" << curr->data << "] -> [" << next->data << "]" << endl;
+                //cout << "  bef [" << curr->data << "] -> [" << next->data << "]" << endl;
                 reverse_sub(next, next->next, nr);
                 next->next = curr;
                 curr->next = nullptr;
-                cout << "  aft [" << next->data << "] -> [" << next->next->data << "]" << endl;
+                //cout << "  aft [" << next->data << "] -> [" << next->next->data << "]" << endl;
             } else {
-                cout << " new root " << curr->data << endl;
+                //cout << " new root " << curr->data << endl;
                 nr = curr;
             }
         };
+        
+        shared_ptr<Node<T>> new_root;
         reverse_sub(root, root->next, new_root);
         return new_root == nullptr ? root : new_root;
     }
 
+    // looping
     template<typename T>
     shared_ptr<Node<T>> reverse2(shared_ptr<Node<T>> root) {
         cout << "BEF: ";
