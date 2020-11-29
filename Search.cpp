@@ -42,6 +42,23 @@ namespace Impl {
         }
         return res_index;
     }
+
+    template<int nRow, int nCol>
+    int countNegativeIn2DSortedArray(int (&matrix)[nRow][nCol]) {
+        int r = 0;
+        int c = nCol - 1;
+        int count = 0;
+        while(r < nRow - 1 && c >=0) {
+            if(matrix[r][c] < 0) {
+                count += c + 1;
+                ++r;
+            } else {
+                --c;
+            }
+        }
+
+        return count;
+    }
 }
 
 bool test_search() {
@@ -104,11 +121,22 @@ bool test_first_occurence() {
     return res;
 }
 
+bool test_countNegativeIn2DSortedArray() {
+    cout << "## " << __func__ << " ##" << endl;
+    int m[3][4] = { { -3, -2, -1,  3 },
+                    { -2,  2,  3,  4 },
+                    {  5,  6,  7,  8 } };
+    int res = Impl::countNegativeIn2DSortedArray(m);
+    cout << " ... count " << res << endl;
+    return res == 4;
+}
+
 void run() {
     bool res = true;
 
     res &= test_search();
     res &= test_first_occurence();
+    res &= test_countNegativeIn2DSortedArray();
 
     cout << "All Tests Passed: " << (res ? "YES" : "NO") << endl;
 }

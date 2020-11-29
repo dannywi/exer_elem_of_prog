@@ -66,17 +66,17 @@ namespace Knapsack {
         for(int mi = 1; mi <= items.size(); ++mi) {
             for(int mw = 1; mw <= max_weight; ++mw) {
                 // value without me is the value above in the matrix (value up until prev item)
-                int valueWithoutItem = matrix[mi - 1][mw];
+                int withoutMe = matrix[mi - 1][mw];
 
                 // value with me is my value plus the best use of remaining weight
-                int valueWithItem = 0;
+                int withMe = 0;
                 if(mw >= items[mi - 1].weight) {
-                    valueWithItem = items[mi - 1].value;
+                    withMe = items[mi - 1].value;
                     int remainingWeight = mw - items[mi - 1].weight;
-                    valueWithItem += matrix[mi][remainingWeight];
+                    withMe += matrix[mi][remainingWeight];
                 }
 
-                matrix[mi][mw] = max(valueWithoutItem, valueWithItem);
+                matrix[mi][mw] = max(withoutMe, withMe);
             }
         }
         int ret = matrix[items.size()][max_weight];
@@ -125,26 +125,44 @@ namespace Knapsack {
 }
 
 namespace CoinCombi {
+    ostream& operator<<(ostream& o, const vector<int>& vec) {
+        o << "{ ";
+        for(auto v : vec) o << v << " ";
+        o << "}";
+        return o;
+    }
+
+    // 1. have a matrix of coins (rows) and totals (cols), plus buffer for first row/col
+    // 2. first col all zeros, first row all INT_MAX (though somehow there's a bug in passing it to min? so substract 1 from it)
+    // 3. if total > me, then with_me = 1 + (best of total - me)
+    //    without_me = value above me
+    // 4. get min of with_me or without_me
+    // 5. answer is the bottom right value (unless it's the unset value, i.e. not a possible combination, return 0)
     int solve(const vector<int>& coins, int total) {
         vector<vector<int>> matrix; // [coin index][total index]
+        static const int UNSET = numeric_limits<int>::max() - 1; // bug with min()?
 
         // init first dummy row
         matrix.push_back(vector<int>());
         for(int t = 0; t <= total; ++t)
-            matrix.back().push_back(0);
+            matrix.back().push_back(UNSET);
 
         for(int i = 1; i <= coins.size(); ++i) {
             matrix.push_back(vector<int>());
             int coin = coins[i - 1];
-            matrix.back().push_back(1); // zero total can be made with zero of any coin
+            matrix.back().push_back(0);
             for(int t = 1; t <= total; ++t) {
-                int with_me = t >= coin ? matrix[i][t - coin] : 0;
                 int without_me = matrix[i - 1][t];
-                matrix.back().push_back(with_me + without_me);
+                int with_me = t >= coin ? 1 + matrix[i][t - coin] : without_me;
+
+                matrix.back().push_back(min(without_me, with_me));
             }
+            cout << " m -> " << matrix[i] << endl;
         }
 
-        return matrix.back().back();
+        int ret = matrix.back().back() == UNSET ? 0 : matrix.back().back();
+        cout << " ... " << ret << endl;
+        return ret;
     }
 
     bool test() {
@@ -155,16 +173,21 @@ namespace CoinCombi {
         };
 
         vector<Test> tests {
-            { { 2, 3, 7 }, 12, 4 },
+            { { 2, 3, 7 }, 12, 3 },
+            { { 4, 7, 9 }, 12, 3 },
+            { { 4, 7, 9 },  1, 0 },
+            { { 4, 7, 9 }, 10, 0 },
+            { { 4, 7, 9 }, 29, 4 },
+            { { 1, 5, 10, 25 }, 55, 3 }
         };
 
-        bool res = true;
+        bool pass = true;
         for(auto test : tests) {
             int res = solve(test.coins, test.total);
-            res &= res == test.expected_combi_count;
+            pass &= res == test.expected_combi_count;
         }
-        cout << "Coins Combinations Tests: " << (res ? "ALL PASSED" : "FAILED") << endl;
-        return res;
+        cout << "Coins Combinations Tests: " << (pass ? "ALL PASSED" : "FAILED") << endl;
+        return pass;
     }
 }
 
