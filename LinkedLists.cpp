@@ -14,6 +14,14 @@ namespace LinkedList {
         shared_ptr<Node<T>> next;
         ~Node() { cout << "deleted " << data << endl; }
 
+        static shared_ptr<Node<T>> getLast(shared_ptr<Node<T>> node) {
+            shared_ptr<Node<T>> last = node;
+            while(last->next) {
+                last = last->next;
+            }
+            return last;
+        }
+
         //enum SortDir { ASC, DSC };
 
         static bool isSorted(shared_ptr<Node<T>> node, bool asc = true) {
@@ -44,10 +52,27 @@ namespace LinkedList {
     }
 
     template<typename T>
-    void print(shared_ptr<Node<T>> root) {
+    shared_ptr<Node<T>> create_list_loop(const vector<T>& vals, size_t loop_idx) {
+        shared_ptr<Node<T>> head = create_list(vals);
+        shared_ptr<Node<T>> last = Node<T>::getLast(head);
+        loop_idx = min(vals.size() - 1, loop_idx);
+        shared_ptr<Node<T>> node = head;
+        for(size_t i = 0; i < loop_idx; ++i) {
+            node = node->next;
+        }
+        last->next = node;
+        return head;
+    }
+
+    template<typename T>
+    void print(shared_ptr<Node<T>> root, size_t max = 0) {
         if(root == nullptr)
             cout << " .. empty .. ";
+        size_t cnt = 0;
         while(root != nullptr) {
+            if(max != 0 && ++cnt == max) {
+                break;
+            }
             cout << root->data << " ";
             root = root->next;
         }
@@ -130,6 +155,73 @@ namespace LinkedList {
         return last;
     }
 
+    template <typename T>
+    bool isLooping(shared_ptr<Node<T>> root) {
+        shared_ptr<Node<T>> slow = root;
+        shared_ptr<Node<T>> fast = root;
+        while(slow && fast) {
+            // cout << "slow [" << slow->data << "] fast [" << fast->data << "]" << endl;
+            slow = slow->next;
+            if(!slow) {
+                break;
+            }
+            fast = fast->next;
+            if(!fast) {
+                break;
+            }
+            fast = fast->next;
+            if(slow == fast) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // not working yet
+    /*template <typename T>
+    int getLoopIdx(shared_ptr<Node<T>> root) {
+        shared_ptr<Node<T>> slow = root;
+        shared_ptr<Node<T>> fast = root;
+        bool looping = false;
+        while(slow && fast) {
+            // cout << "slow [" << slow->data << "] fast [" << fast->data << "]" << endl;
+            slow = slow->next;
+            if(!slow)
+                break;
+            fast = fast->next;
+            if(!fast)
+                break;
+            fast = fast->next;
+            if(slow == fast) {
+                looping = true;
+                break;
+            }
+        }
+
+        if(!looping)
+            return -1;
+        
+        size_t loop_size = 0;
+        while(true) {
+            fast = fast->next;
+            if(slow == fast)
+                break;
+            ++loop_size;
+        }
+
+        slow = fast = root;
+        for(size_t i = 0; i < loop_size; ++i)
+            fast = fast->next;
+        cout << " .. loop size " << loop_size << endl;
+        int idx = 0;
+        while(slow != fast) {
+            slow = slow->next;
+            fast = fast->next;
+            ++idx;
+        }
+        return idx;
+    }*/
+
     void run() {
         auto list1 = create_list( vector<int>({ 1, 5, 10, 15 }) );
         auto list2 = create_list( vector<int>({ 2, 3, 5, 7, 11, 15, 16 }) );
@@ -147,6 +239,11 @@ namespace LinkedList {
         auto root2 = create_list( vector<int>({ 1, 5, 10, 15, 19, 32, 33 }) );
         root2 = reverse2(root2);
         res &= Node<int>::size(root2) == 7 && Node<int>::isSorted(root2, false);
+
+        auto root3 = create_list_loop( vector<int>({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }), 5 );
+        res &= isLooping(root2) == false;
+        res &= isLooping(root3) == true;
+        print(root3, 25);
 
         cout << "All Tests Passed: " << (res ? "YES" : "NO") << endl;
     }
