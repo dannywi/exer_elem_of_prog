@@ -10,4 +10,10 @@ bazel build //:all
 
 # RUN ONE FILE (e.g. LinkedList.cpp)
 bazel build //:LinkedList
+
+# TO PASS ARGUMENTS
+bazel build //:Hello Galadriel
+
+# TO RUN WITHOUT BAZEL
+./run.sh Hello.cpp Elrond
 ```

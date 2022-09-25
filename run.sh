@@ -1,4 +1,6 @@
 #!/bin/bash
+OUTDIR=out
 FILE=$1
 shift;
-g++ --std=c++17 $FILE -o build/runner && ./build/runner $@
+mkdir -p $OUTDIR
+g++ --std=c++17 $FILE -o $OUTDIR/runner && ./$OUTDIR/runner $@
