@@ -1,10 +1,12 @@
 #include <functional>
 #include <iostream>
 #include <numeric>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_set>
 #include <vector>
+
 using namespace std;
 
 // move to another file
@@ -250,14 +252,19 @@ void partition(vector<T>& arr, std::function<bool(T)> fn) {
 template <typename T>
 bool is_partitioned(const vector<T>& arr, std::function<bool(T)> fn) {
     // the latch must only change once
-    bool latch = true;
+    optional<bool> latch;
+    uint8_t switched = 0;
     for (auto i : arr) {
-        if (!latch) {
-            if (fn(i)) {
-                return false;
-            }
-        } else {
+        if (!latch.has_value()) {
             latch = fn(i);
+        } else {
+            bool curr = fn(i);
+            if (latch != curr) {
+                if (++switched > 1) {
+                    return false;
+                };
+                latch = curr;
+            }
         }
     }
     return true;
@@ -273,9 +280,8 @@ void run() {
         {},
     };
     // clang-format on
+
     auto is_even = [](int v) { return v % 2 == 0; };
-    // partition<int>(test, is_even);
-    // cout << Tools::print(test.begin(), test.end()) << endl;
 
     bool res = true;
     for (auto& t : tests) {
