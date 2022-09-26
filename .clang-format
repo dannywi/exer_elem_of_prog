@@ -15,3 +15,5 @@ PointerAlignment: Left
 AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: Empty
 # AllowShortLambdasOnASingleLine: Empty
+
+IndentWidth: 4
