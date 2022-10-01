@@ -1,5 +1,6 @@
 #include <functional>
 #include <iostream>
+#include <list>
 #include <numeric>
 #include <optional>
 #include <sstream>
@@ -295,6 +296,159 @@ void run() {
 }
 }  // namespace Partition
 
+namespace BigNumber {
+class BigNumber {
+    // most significant digit at root (negative for minus number)
+    // most significant digit can be negative for negative number
+    using T = int8_t;
+    list<T> val_;
+
+    // only for internal temp vars
+    BigNumber() {}
+
+   public:
+    BigNumber(const char* number) {
+        from_str(number);
+    };
+
+    BigNumber operator+(const BigNumber& that) const {
+        if (val_.front() < 0 || that.val_.front() < 0) {
+            throw("negative (i.e. subtraction) not supported yet");
+        }
+        BigNumber res;
+        auto this_it = val_.rbegin();
+        auto that_it = that.val_.rbegin();
+        bool carry = false;
+        while (this_it != val_.rend() || that_it != that.val_.rend()) {
+            if (this_it == val_.rend()) {
+                res.val_.push_front(*that_it + (carry ? 1 : 0));
+                ++that_it;
+                carry = false;
+            } else if (that_it == that.val_.rend()) {
+                res.val_.push_front(*this_it + (carry ? 1 : 0));
+                ++this_it;
+                carry = false;
+            } else {
+                T curr = *this_it + *that_it + (carry ? 1 : 0);
+                carry = false;
+                if (curr > 9) {
+                    curr -= 10;
+                    carry = true;
+                }
+                res.val_.push_front(curr);
+                ++this_it;
+                ++that_it;
+            }
+        }
+
+        if (carry) {
+            res.val_.push_front(1);
+        }
+
+        return res;
+    }
+
+    BigNumber operator*(const BigNumber& that) const {
+        // todo: fix, implementated as addition not working
+        BigNumber res{"0"};
+        uint32_t mult_this = 1;
+        for (auto i = val_.rbegin(); i != val_.rend(); ++i) {
+            uint32_t mult_that = 1;
+            for (auto a = that.val_.rbegin(); a != that.val_.rend(); ++a) {
+                if (*a > 0) {
+                    for (T c = 0; c < *i * mult_this; ++c) {
+                        res = res + BigNumber(to_string(*a * mult_that).c_str());
+                    }
+                }
+                mult_that *= 10;
+            }
+            mult_this *= 10;
+        }
+        return res;
+    }
+
+    bool operator==(const BigNumber& that) const {
+        auto this_it = val_.begin();
+        auto that_it = that.val_.begin();
+        while (this_it != val_.end() || that_it != that.val_.end()) {
+            if (this_it == val_.end() || that_it == that.val_.end()) {
+                return false;  // different digit count
+            }
+            if (*this_it != *that_it) {
+                return false;
+            }
+            ++this_it;
+            ++that_it;
+        }
+        return true;
+    }
+
+    bool operator!=(const BigNumber& that) const {
+        return !(*this == that);
+    }
+
+    string print() const {
+        string s;
+        for (auto c : val_) {
+            s += to_string(c);
+        }
+        return s;
+    }
+
+    void from_str(const char* number) {
+        val_.clear();
+        bool negative = false;
+        if (*number == '-') {
+            negative = true;
+            ++number;
+        }
+
+        while (*number != '\0' && '0' <= *number && *number <= '9') {
+            T digit = *number - '0';
+            if (negative) {
+                digit *= -1;
+                negative = false;  // only invert the first one
+            }
+            val_.push_back(digit);
+            ++number;
+        }
+
+        // regard errors as zero
+        if (val_.empty()) {
+            val_.push_back(0);
+        }
+    }
+};
+
+ostream& operator<<(ostream& os, const BigNumber& v) {
+    os << v.print();
+    return os;
+}
+
+void run() {
+    struct Test {
+        BigNumber n1, n2, result_add, result_mult;
+    };
+
+    vector<Test> tests{
+        {{"1234"}, {"2000"}, {"3234"}, {"2468000"}},
+        {{"9999"}, {"9999"}, {"19998"}, {"99980001"}},
+        {{"9"}, {"9"}, {"18"}, {"81"}},
+        {{"19"}, {"10"}, {"29"}, {"190"}},
+    };
+
+    bool res = true;
+    for (const auto& t : tests) {
+        cout << t.n1 << " + " << t.n2 << " = " << t.result_add << endl;
+        res &= t.n1 + t.n2 == t.result_add;
+        // cout << t.n1 << " * " << t.n2 << " = " << t.result_mult << endl;
+        // res &= t.n1 * t.n2 == t.result_mult;
+    }
+
+    cout << "All Tests Passed: " << (res ? "YES" : "NO") << endl;
+}
+}  // namespace BigNumber
+
 int main() {
     cout << "===== Arrays =====" << endl;
 
@@ -303,6 +457,7 @@ int main() {
     MedianOfTwoSortedArrays::run();
     IncrementDigits::run();
     Partition::run();
+    BigNumber::run();
 
     return 0;
 }
