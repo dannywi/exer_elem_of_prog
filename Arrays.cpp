@@ -59,15 +59,33 @@ ostream& operator<<(ostream& o, const vector<T>& v) {
     return o;
 }
 
-template <typename T, typename enable_if<is_integral<T>::value && is_unsigned<T>::value, bool>::type = true>
-vector<T> solve(const vector<T>& input) {
+// Utilities for concept checks. Having multiple to try different methods, but same end results
+// 1. check class to be used inside enable_if
+template <typename>
+struct _has {
+    static constexpr bool v = true;
+};
+// 2. check class to be used as template default param (::type can be anything, it's just a hack)
+template <typename>
+struct _has_ {
+    typedef uint16_t type;
+};
+
+template <typename CONT, typename T = typename CONT::value_type,
+          typename enable_if<_has<decltype(&CONT::size)>::v && is_integral<T>::value && is_unsigned<T>::value,
+                             bool>::type = true,
+          typename _has_<decltype(&CONT::empty)>::type = 8>
+CONT solve(const CONT& input) {
     // assuming we keep all zeros, the whole sequence as-is is max for unsigned
     cout << "[unsigned] ... best sequence " << input << " index 0 - " << input.size() - 1 << endl;
     return input;
 }
 
-template <typename T, typename enable_if<is_integral<T>::value && is_signed<T>::value, bool>::type = true>
-vector<T> solve(const vector<T>& input) {
+template <typename CONT, typename T = typename CONT::value_type,
+          typename enable_if<_has<decltype(&CONT::size)>::v && is_integral<T>::value && is_signed<T>::value,
+                             bool>::type = true,
+          typename _has_<typename CONT::const_iterator>::type = 8>
+CONT solve(const CONT& input) {
     T T_MIN = numeric_limits<T>::min();
     // kadane's algo
     T glob_max = T_MIN;
@@ -100,8 +118,10 @@ vector<T> solve(const vector<T>& input) {
     return ret;
 }
 
-template <typename T>
-int getMaxSumOnly(const vector<T>& input) {
+template <typename CONT, typename T = typename CONT::value_type,
+          typename enable_if<is_arithmetic<T>::value && _has<decltype(&CONT::size)>::v, int8_t>::type = -42,
+          typename _has_<typename CONT::iterator>::type = 43>
+int getMaxSumOnly(const CONT& input) {
     if (input.empty()) return 0;
     T currMax = input[0];
     T globalMax = input[0];
