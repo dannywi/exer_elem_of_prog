@@ -72,14 +72,13 @@ vector<T> solve(const vector<T>& input) {
     // kadane's algo
     T glob_max = T_MIN;
     T curr_max = T_MIN;
-    T glob_st = 0, glob_en = 0, curr_st = 0, curr_en = 0;
+    T glob_st = 0, glob_en = 0, curr_st = 0;
     for (T i = 0; i < input.size(); ++i) {
         T x = input[i];
-        T curr_en = i;
         if (curr_max == T_MIN || curr_max + x < x) {
             // reset, x is better than current running
             curr_max = x;
-            curr_st = curr_en;
+            curr_st = i;
         } else {
             curr_max += x;
         }
@@ -87,7 +86,7 @@ vector<T> solve(const vector<T>& input) {
         if (curr_max > glob_max) {
             glob_max = curr_max;
             glob_st = curr_st;
-            glob_en = curr_en;
+            glob_en = i;
         }
     }
 
@@ -101,12 +100,13 @@ vector<T> solve(const vector<T>& input) {
     return ret;
 }
 
-int getMaxSumOnly(const vector<int>& input) {
+template <typename T>
+int getMaxSumOnly(const vector<T>& input) {
     if (input.empty()) return 0;
-    int currMax = input[0];
-    int globalMax = input[0];
-    for (int i = 1; i < input.size(); ++i) {
-        int v = input[i];
+    T currMax = input[0];
+    T globalMax = input[0];
+    for (size_t i = 1; i < input.size(); ++i) {
+        T v = input[i];
         // if me alone is better than the accumulated so far and me, start fresh with me only
         currMax = max(v, currMax + v);
         // update global max if current running is bigger
