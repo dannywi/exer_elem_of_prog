@@ -51,6 +51,7 @@ void run() {
 }  // namespace DeleteDuplicatesFromSorted
 
 namespace LargestSubArray {
+// todo: generalize this to work for other containers
 template <typename T>
 ostream& operator<<(ostream& o, const vector<T>& v) {
     o << "{ ";
@@ -108,7 +109,7 @@ CONT solve(const CONT& input) {
         }
     }
 
-    vector<T> ret;
+    CONT ret;
     // for(int i = glob_st; i <= glob_en; ++i)
     //     ret.emplace_back(input[i]);
     if (input.size() > 0) copy(input.begin() + glob_st, input.begin() + glob_en + 1, back_inserter(ret));
