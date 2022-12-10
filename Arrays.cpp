@@ -5,6 +5,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -50,22 +51,32 @@ void run() {
 }  // namespace DeleteDuplicatesFromSorted
 
 namespace LargestSubArray {
-ostream& operator<<(ostream& o, const vector<int>& v) {
+template <typename T>
+ostream& operator<<(ostream& o, const vector<T>& v) {
     o << "{ ";
     for (const auto& e : v) o << e << " ";
     o << "}";
     return o;
 }
 
-vector<int> solve(const vector<int>& input) {
+template <typename T, typename enable_if<is_integral<T>::value && is_unsigned<T>::value, bool>::type = true>
+vector<T> solve(const vector<T>& input) {
+    // assuming we keep all zeros, the whole sequence as-is is max for unsigned
+    cout << "[unsigned] ... best sequence " << input << " index 0 - " << input.size() - 1 << endl;
+    return input;
+}
+
+template <typename T, typename enable_if<is_integral<T>::value && is_signed<T>::value, bool>::type = true>
+vector<T> solve(const vector<T>& input) {
+    T T_MIN = numeric_limits<T>::min();
     // kadane's algo
-    int glob_max = numeric_limits<int>::min();
-    int curr_max = numeric_limits<int>::min();
-    int glob_st = 0, glob_en = 0, curr_st = 0, curr_en = 0;
-    for (int i = 0; i < input.size(); ++i) {
-        int x = input[i];
-        int curr_en = i;
-        if (curr_max == numeric_limits<int>::min() || curr_max + x < x) {
+    T glob_max = T_MIN;
+    T curr_max = T_MIN;
+    T glob_st = 0, glob_en = 0, curr_st = 0, curr_en = 0;
+    for (T i = 0; i < input.size(); ++i) {
+        T x = input[i];
+        T curr_en = i;
+        if (curr_max == T_MIN || curr_max + x < x) {
             // reset, x is better than current running
             curr_max = x;
             curr_st = curr_en;
@@ -80,13 +91,13 @@ vector<int> solve(const vector<int>& input) {
         }
     }
 
-    vector<int> ret;
+    vector<T> ret;
     // for(int i = glob_st; i <= glob_en; ++i)
     //     ret.emplace_back(input[i]);
     if (input.size() > 0) copy(input.begin() + glob_st, input.begin() + glob_en + 1, back_inserter(ret));
     // copy(input.begin() + glob_st, input.begin() + glob_en + 1, inserter(ret, ret.end()));
 
-    cout << " ... best sequence " << ret << " index " << glob_st << " - " << glob_en << endl;
+    cout << "[kadane] ... best sequence " << ret << " index " << glob_st << " - " << glob_en << endl;
     return ret;
 }
 
@@ -106,6 +117,7 @@ int getMaxSumOnly(const vector<int>& input) {
 }
 
 void run() {
+    // test signed integer
     struct Test {
         vector<int> input;
         vector<int> expected_output;
@@ -123,6 +135,17 @@ void run() {
     for (auto test : tests) {
         res &= solve(test.input) == test.expected_output;
         res &= getMaxSumOnly(test.input) == accumulate(test.expected_output.begin(), test.expected_output.end(), 0);
+    }
+
+    // test unsigned
+    vector<vector<unsigned>> tests2{
+        {1, 2, 3, 3},
+        {3, 0, 2, 1, 23},
+        {10, 9, 8, 7, 6, 5, 0},
+    };
+
+    for (auto const& test : tests2) {
+        res &= solve(test) == test;
     }
 
     cout << "Tests Passed: " << (res ? "YES" : "NO") << endl;
@@ -191,7 +214,6 @@ void increment_one(vector<int>& v) {
         return;
     }
 
-    int carry = 0;
     for (auto r = v.rbegin(); r != v.rend(); ++r) {
         int curr = ++(*r);
         if (curr < 10) break;

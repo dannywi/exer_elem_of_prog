@@ -1,65 +1,64 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
 #include <algorithm>
-#include <functional>
-#include <stdexcept>
 #include <deque>
+#include <functional>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 using namespace std;
 
 namespace Impl {
-    template<typename T>
-    bool bsearch(T v, const vector<T>& vec) {
-        int a = 0, b = vec.size() - 1;
-        while(a <= b) {
-            int m = a + (b - a) / 2;
-            if(vec[m] == v)
-                return true;
-            if(vec[m] < v)
-                a = m + 1;
-            else
-                b = m - 1;
-        }
-        return false;
+template <typename T>
+bool bsearch(T v, const vector<T>& vec) {
+    int a = 0, b = vec.size() - 1;
+    while (a <= b) {
+        int m = a + (b - a) / 2;
+        if (vec[m] == v) return true;
+        if (vec[m] < v)
+            a = m + 1;
+        else
+            b = m - 1;
     }
-
-    template<typename T>
-    int first_occurence(T v, vector<T> vec) {
-        int a = 0, b = vec.size() - 1;
-        int res_index = -1;
-        while(a <= b) {
-            int m = a + (b - a) / 2;
-            if(vec[m] == v) {
-                res_index = m;
-                b = m - 1;
-            } else if(vec[m] < v) {
-                a = m + 1;
-            } else {
-                b = m - 1;
-            }
-        }
-        return res_index;
-    }
-
-    template<int nRow, int nCol>
-    int countNegativeIn2DSortedArray(int (&matrix)[nRow][nCol]) {
-        int r = 0;
-        int c = nCol - 1;
-        int count = 0;
-        while(r < nRow - 1 && c >=0) {
-            if(matrix[r][c] < 0) {
-                count += c + 1;
-                ++r;
-            } else {
-                --c;
-            }
-        }
-
-        return count;
-    }
+    return false;
 }
+
+template <typename T>
+int first_occurence(T v, vector<T> vec) {
+    int a = 0, b = vec.size() - 1;
+    int res_index = -1;
+    while (a <= b) {
+        int m = a + (b - a) / 2;
+        if (vec[m] == v) {
+            res_index = m;
+            b = m - 1;
+        } else if (vec[m] < v) {
+            a = m + 1;
+        } else {
+            b = m - 1;
+        }
+    }
+    return res_index;
+}
+
+template <int nRow, int nCol>
+int countNegativeIn2DSortedArray(int (&matrix)[nRow][nCol]) {
+    int r = 0;
+    int c = nCol - 1;
+    int count = 0;
+    while (r < nRow - 1 && c >= 0) {
+        if (matrix[r][c] < 0) {
+            count += c + 1;
+            ++r;
+        } else {
+            --c;
+        }
+    }
+
+    return count;
+}
+}  // namespace Impl
 
 bool test_search() {
     cout << "## " << __func__ << " ##" << endl;
@@ -68,7 +67,7 @@ bool test_search() {
     vector<int> vec(12);
     int range = 20;
 
-    for(int i = 1; i <= 5; ++i) {
+    for (int i = 1; i <= 5; ++i) {
         for_each(vec.begin(), vec.end(), [&range](int& x) { x = rand() % range; });
         sort(vec.begin(), vec.end());
 
@@ -95,7 +94,7 @@ bool test_first_occurence() {
     vector<int> vec(10);
     int range = 7;
 
-    for(int i = 1; i <= 15; ++i) {
+    for (int i = 1; i <= 15; ++i) {
         for_each(vec.begin(), vec.end(), [&range](int& x) { x = rand() % range; });
         sort(vec.begin(), vec.end());
 
@@ -103,8 +102,8 @@ bool test_first_occurence() {
 
         // check answer using linear search
         int ans = -1;
-        for(int a = 0; a < vec.size(); ++a) {
-            if(vec[a] == v) {
+        for (int a = 0; a < vec.size(); ++a) {
+            if (vec[a] == v) {
                 ans = a;
                 break;
             }
@@ -123,9 +122,11 @@ bool test_first_occurence() {
 
 bool test_countNegativeIn2DSortedArray() {
     cout << "## " << __func__ << " ##" << endl;
+    // clang-format off
     int m[3][4] = { { -3, -2, -1,  3 },
                     { -2,  2,  3,  4 },
                     {  5,  6,  7,  8 } };
+    // clang-format on
     int res = Impl::countNegativeIn2DSortedArray(m);
     cout << " ... count " << res << endl;
     return res == 4;
