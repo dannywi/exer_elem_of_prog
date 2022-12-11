@@ -1,3 +1,4 @@
+#include <deque>
 #include <functional>
 #include <iostream>
 #include <list>
@@ -51,15 +52,6 @@ void run() {
 }  // namespace DeleteDuplicatesFromSorted
 
 namespace LargestSubArray {
-// todo: generalize this to work for other containers
-template <typename T>
-ostream& operator<<(ostream& o, const vector<T>& v) {
-    o << "{ ";
-    for (const auto& e : v) o << e << " ";
-    o << "}";
-    return o;
-}
-
 // Utilities for concept checks. Having multiple to try different methods, but same end results
 // 1. check class to be used inside enable_if
 template <typename>
@@ -71,6 +63,15 @@ template <typename>
 struct _has_ {
     typedef uint16_t type;
 };
+
+template <typename CONT, typename T = typename CONT::value_type,
+          typename = typename _has_<typename CONT::const_iterator>::type>
+ostream& operator<<(ostream& o, const CONT& v) {
+    o << "{ ";
+    for (const auto& e : v) o << e << " ";
+    o << "}";
+    return o;
+}
 
 template <typename CONT, typename T = typename CONT::value_type,
           typename enable_if<_has<decltype(&CONT::size)>::v && is_integral<T>::value && is_unsigned<T>::value,
@@ -161,7 +162,7 @@ void run() {
     }
 
     // test unsigned
-    vector<vector<unsigned>> tests2{
+    deque<deque<unsigned>> tests2{
         {1, 2, 3, 3},
         {3, 0, 2, 1, 23},
         {10, 9, 8, 7, 6, 5, 0},
