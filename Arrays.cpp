@@ -82,10 +82,11 @@ CONT solve(const CONT& input) {
     return input;
 }
 
-template <typename CONT, typename T = typename CONT::value_type,
-          typename enable_if<_has<decltype(&CONT::size)>::v && is_integral<T>::value && is_signed<T>::value,
-                             bool>::type = true,
-          typename _has_<typename CONT::const_iterator>::type = 8>
+// To shorten the concept conditions, assign type instead of value of the type
+template <
+    typename CONT, typename T = typename CONT::value_type,
+    typename = typename enable_if<_has<decltype(&CONT::size)>::v && is_integral<T>::value && is_signed<T>::value>::type,
+    typename = typename _has_<typename CONT::const_iterator>::type>
 CONT solve(const CONT& input) {
     T T_MIN = numeric_limits<T>::min();
     // kadane's algo
@@ -119,10 +120,11 @@ CONT solve(const CONT& input) {
     return ret;
 }
 
+// Another conditioning style, putting the condition as the return type
 template <typename CONT, typename T = typename CONT::value_type,
-          typename enable_if<is_arithmetic<T>::value && _has<decltype(&CONT::size)>::v, int8_t>::type = -42,
-          typename _has_<typename CONT::iterator>::type = 43>
-int getMaxSumOnly(const CONT& input) {
+          typename = typename _has_<typename CONT::iterator>::type>
+typename enable_if<is_arithmetic<T>::value && _has<decltype(&CONT::size)>::v, T>::type getMaxSumOnly(
+    const CONT& input) {
     if (input.empty()) return 0;
     T currMax = input[0];
     T globalMax = input[0];
