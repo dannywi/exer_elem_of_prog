@@ -170,6 +170,7 @@ void run() {
 
     for (auto const& test : tests2) {
         res &= solve(test) == test;
+        res &= getMaxSumOnly(test) == accumulate(test.begin(), test.end(), 0);
     }
 
     cout << "Tests Passed: " << (res ? "YES" : "NO") << endl;
