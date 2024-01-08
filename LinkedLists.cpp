@@ -217,7 +217,31 @@ int getLoopIdx(shared_ptr<Node<T>> root) {
     return idx;
 }*/
 
+struct Test {
+    static int c;
+    string s;
+    Test() : s("my long long string" + std::to_string(c++)) {
+        cout << "a const" << endl;
+    }
+    ~Test() {
+        cout << "a destr" << endl;
+    }
+    Test(const Test&) = delete;
+    Test(const Test&& o) {
+        cout << "move const" << endl;
+        s = o.s + "__";
+    };
+};
+int Test::c = 23;
+
 void run() {
+    {
+        Test a;
+        cout << a.s << endl;
+        Test b{std::move(a)};
+        cout << b.s << endl;
+        cout << a.s << endl;
+    }
     auto list1 = create_list(vector<int>({1, 5, 10, 15}));
     auto list2 = create_list(vector<int>({2, 3, 5, 7, 11, 15, 16}));
 

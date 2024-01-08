@@ -83,6 +83,33 @@ int solveValueOnly(const vector<Item>& items, int max_weight) {
     return ret;
 }
 
+// even simpler alternative, with only a 1-D array, the essense of dynamic programming
+// 1. create an array to cache the max value at each weight
+// 2. apply the weights for each slot, taking the max of the previous weight slot
+//    that would add up to the current slot using the current weight
+// 3. repeat until the last slot, i.e. the target weight
+int solveValueOnlyAlt(const vector<Item>& items, int max_weight) {
+    vector<int> max_values(max_weight + 1, 0);
+    // skip 0, would not have anything anyway
+    for (size_t v = 1; v < max_values.size(); ++v) {
+        int slot_max = 0;
+        for (size_t i = 0; i < items.size(); ++i) {
+            // skip if current weight doesn't fit the slot
+            if (items[i].weight <= v) {
+                int curr_value = items[i].value;
+                int prev_v = v - items[i].weight;
+                if (v >= 0) {
+                    curr_value += max_values[prev_v];
+                }
+                slot_max = std::max(slot_max, curr_value);
+            }
+        }
+        max_values[v] = slot_max;
+    }
+    cout << "   ... solveValueOnlyAlt " << max_values.back() << endl;
+    return max_values.back();
+}
+
 bool test() {
     struct Test {
         vector<Item> in_items;
@@ -116,6 +143,7 @@ bool test() {
         res &= items == test.expected_items && value == test.expected_value;
 
         res &= test.expected_value == solveValueOnly(test.in_items, test.max_weight);
+        res &= test.expected_value == solveValueOnlyAlt(test.in_items, test.max_weight);
 
         cout << " total value " << value << endl;
         for_each(items.begin(), items.end(), [](const Item& i) { cout << " ..... " << i << endl; });
@@ -167,6 +195,40 @@ int solve(const vector<int>& coins, int total) {
     return ret;
 }
 
+// Alternative approach, using just 1-D array, the essense of dynamic programming
+// 1. prepare array as slots for all total values until the target
+// 2. init the slots at the coin values to 1 (other slots with ERR value)
+//    intuition: we can produce the values with just one coin
+// 3. for each slot loop the coins, getting the minimum one taking account of
+//    the minimum from previous slot that can be added to come to current slot
+//    by using the current coin
+// 4. continue until the last slot, i.e. the target value
+int solveAlt(const vector<int>& coins, int total) {
+    constexpr int ERR = 0;
+    vector<int> values(total + 1, ERR);
+
+    for (int c : coins) {
+        if (c < values.size()) {
+            values[c] = 1;
+        }
+    }
+
+    for (int v = 0; v < values.size(); ++v) {
+        for (int c : coins) {
+            int curr_val = values[v];
+            int prev_v = v - c;
+            int prev_val = prev_v >= 0 ? values[prev_v] : ERR;
+            if (curr_val != ERR && prev_val != ERR) {
+                values[v] = std::min(curr_val, 1 + prev_val);
+            } else if (curr_val != ERR || prev_val != ERR) {
+                values[v] = curr_val == ERR ? 1 + prev_val : curr_val;
+            }
+        }
+    }
+    cout << "solveAlt " << values.back() << endl;
+    return values.back();
+}
+
 bool test() {
     struct Test {
         vector<int> coins;
@@ -188,6 +250,9 @@ bool test() {
     bool pass = true;
     for (auto test : tests) {
         int res = solve(test.coins, test.total);
+        pass &= res == test.expected_combi_count;
+
+        res = solveAlt(test.coins, test.total);
         pass &= res == test.expected_combi_count;
     }
     cout << "Coins Combinations Tests: " << (pass ? "ALL PASSED" : "FAILED") << endl;
